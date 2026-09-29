@@ -11,7 +11,6 @@
             --btn-blue: #0284c7;
             --btn-green: #15803d;
             --btn-red: #dc2626;
-            --btn-purple: #7e22ce;
             --border-color: #cbd5e1;
             --bg-body: #f8fafc;
         }
@@ -94,15 +93,7 @@
             border-radius: 4px;
             font-size: 13px;
             outline: none;
-        }
-
-        .student-select-wrapper {
-            display: flex;
-            gap: 6px;
-        }
-
-        .student-select-wrapper select {
-            flex: 1;
+            background-color: #ffffff;
         }
 
         .btn-group {
@@ -129,7 +120,6 @@
         .btn-reset { background-color: var(--btn-red); }
         .btn-print { background-color: var(--navy-header); }
         .btn-a3 { background-color: var(--btn-blue); }
-        .btn-add { background-color: var(--btn-purple); white-space: nowrap; }
 
         button:hover { opacity: 0.9; }
 
@@ -229,7 +219,7 @@
     <h3>ವಿದ್ಯಾರ್ಥಿ ಮೌಲ್ಯಮಾಪನ ಅಂಕಪಟ್ಟಿ (Student Assessment Register)</h3>
 </div>
 
-<!-- DATA ENTRY SECTION (BILINGUAL) -->
+<!-- DATA ENTRY SECTION -->
 <div class="card no-print" id="dataEntryCard">
     <div class="card-title">📝 ಮಾಹಿತಿ ದಾಖಲಾತಿ ವಿಭಾಗ (Data Entry Screen)</div>
     
@@ -260,15 +250,13 @@
                 </select>
             </div>
 
-            <!-- Student Selection & Add Student Option -->
+            <!-- Fully Open / Unfrozen Student Name Input -->
             <div class="form-group">
                 <label>ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು (Student Name) *</label>
-                <div class="student-select-wrapper">
-                    <select id="studentSelect" required>
-                        <option value="">-- ವಿದ್ಯಾರ್ಥಿ ಆಯ್ಕೆಮಾಡಿ / Select Student --</option>
-                    </select>
-                    <button type="button" class="btn-add" onclick="addNewStudentPrompt()">➕ ಹೊಸ ವಿದ್ಯಾರ್ಥಿ (Add New)</button>
-                </div>
+                <input type="text" id="studentName" list="studentListSuggestions" placeholder="ಹೆಸರು ಟೈಪ್ ಮಾಡಿ / Enter Name" required>
+                <datalist id="studentListSuggestions">
+                    <!-- Populated dynamically -->
+                </datalist>
             </div>
 
             <!-- Assessment Selection -->
@@ -304,7 +292,7 @@
     </form>
 </div>
 
-<!-- INDIVIDUAL MARKS REGISTER (PRINT: A4 LANDSCAPE) -->
+<!-- INDIVIDUAL MARKS REGISTER (A4 LANDSCAPE PRINT) -->
 <div class="card" id="individualSection">
     <div class="card-title">
         <span>📊 ಮೌಲ್ಯಮಾಪನ ದತ್ತಾಂಶ ಶೀಟ್ (Individual Marks Register)</span>
@@ -328,17 +316,11 @@
                     <th colspan="3" class="ds-th-sa2">SA-2 (20%)</th>
                 </tr>
                 <tr>
-                    <!-- FA-1 -->
                     <th class="ds-sub-th">ಪಡೆದ ಅಂಕ</th><th class="ds-sub-th">15%</th><th class="ds-sub-th">Grade</th>
-                    <!-- FA-2 -->
                     <th class="ds-sub-th">ಪಡೆದ ಅಂಕ</th><th class="ds-sub-th">15%</th><th class="ds-sub-th">Grade</th>
-                    <!-- SA-1 -->
                     <th class="ds-sub-th">ಪಡೆದ ಅಂಕ</th><th class="ds-sub-th">20%</th><th class="ds-sub-th">Grade</th>
-                    <!-- FA-3 -->
                     <th class="ds-sub-th">ಪಡೆದ ಅಂಕ</th><th class="ds-sub-th">15%</th><th class="ds-sub-th">Grade</th>
-                    <!-- FA-4 -->
                     <th class="ds-sub-th">ಪಡೆದ ಅಂಕ</th><th class="ds-sub-th">15%</th><th class="ds-sub-th">Grade</th>
-                    <!-- SA-2 -->
                     <th class="ds-sub-th">ಪಡೆದ ಅಂಕ</th><th class="ds-sub-th">20%</th><th class="ds-sub-th">Grade</th>
                 </tr>
             </thead>
@@ -358,7 +340,7 @@
     </div>
 </div>
 
-<!-- CONSOLIDATED MARKS REGISTER (PRINT: A3 LANDSCAPE) -->
+<!-- CONSOLIDATED MARKS REGISTER (A3 LANDSCAPE PRINT) -->
 <div class="card" id="consolidatedSection">
     <div class="card-title">
         <span>📊 1 TO 5TH CONSOLIDATED MARKS REGISTER</span>
@@ -409,7 +391,7 @@
 </div>
 
 <script>
-    const DB_KEY = 'INTEGRATED_SCHOOL_MARKS_DB_V4';
+    const DB_KEY = 'INTEGRATED_SCHOOL_MARKS_DB_V5';
 
     const assessments = [
         { id: 'FA-1', weight: 15 },
@@ -448,44 +430,21 @@
 
     function saveDB(data) {
         localStorage.setItem(DB_KEY, JSON.stringify(data));
-        updateStudentDropdown();
+        updateStudentSuggestions();
         renderDataSheet();
         renderConsolidated();
     }
 
-    // Add New Student Dynamic Action
-    function addNewStudentPrompt() {
-        const name = prompt("ಹೊಸ ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು ನಮೂದಿಸಿ / Enter New Student Name:");
-        if (name && name.trim() !== "") {
-            const cleanName = name.trim();
-            let db = loadDB();
-            if (!db[cleanName]) {
-                db[cleanName] = { daysPresent: 210, totalDays: 220 };
-                saveDB(db);
-                document.getElementById('studentSelect').value = cleanName;
-                alert(`✓ ${cleanName} ವಿದ್ಯಾರ್ಥಿ ಯಶಸ್ವಿಯಾಗಿ ಸೇರ್ಪಡೆಯಾಗಿದ್ದಾರೆ.`);
-            } else {
-                alert("ಈ ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು ಈಗಾಗಲೇ ಇದೆ! / Student name already exists!");
-            }
-        }
-    }
-
-    function updateStudentDropdown() {
+    function updateStudentSuggestions() {
         const db = loadDB();
-        const select = document.getElementById('studentSelect');
-        const currentVal = select.value;
-        select.innerHTML = '<option value="">-- ವಿದ್ಯಾರ್ಥಿ ಆಯ್ಕೆಮಾಡಿ / Select Student --</option>';
+        const datalist = document.getElementById('studentListSuggestions');
+        datalist.innerHTML = '';
 
         Object.keys(db).forEach(name => {
             const opt = document.createElement('option');
             opt.value = name;
-            opt.textContent = name;
-            select.appendChild(opt);
+            datalist.appendChild(opt);
         });
-
-        if (db[currentVal]) {
-            select.value = currentVal;
-        }
     }
 
     function checkPreparedBy() {
@@ -506,7 +465,7 @@
 
         const students = Object.keys(db);
         if (students.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="20" style="padding: 15px; color: #64748b;">ಯಾವ ದತ್ತಾಂಶವೂ ಲಭ್ಯವಿಲ್ಲ, ದಯವಿಟ್ಟು 'ಹೊಸ ವಿದ್ಯಾರ್ಥಿ ಸೇರಿಸಿ' ಬಟನ್ ಅಥವಾ ಫಾರ್ಮ್ ಬಳಸಿ.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="20" style="padding: 15px; color: #64748b;">ಯಾವ ದತ್ತಾಂಶವೂ ಲಭ್ಯವಿಲ್ಲ, ವಿದ್ಯಾರ್ಥಿ ಹೆಸರು ಮತ್ತು ಅಂಕಗಳನ್ನು ಟೈಪ್ ಮಾಡಿ ಸೇವ್ ಮಾಡಿ.</td></tr>`;
             return;
         }
 
@@ -656,14 +615,14 @@
     document.getElementById('dataForm').addEventListener('submit', function(e) {
         e.preventDefault();
 
-        const name = document.getElementById('studentSelect').value;
+        const name = document.getElementById('studentName').value.trim();
         const subject = document.getElementById('subjectSelect').value;
         const assessment = document.getElementById('assessmentSelect').value;
         const max = parseFloat(document.getElementById('maxMarks').value);
         const obtained = parseFloat(document.getElementById('obtainedMarks').value);
 
         if (!name) {
-            alert('ದಯವಿಟ್ಟು ವಿದ್ಯಾರ್ಥಿಯನ್ನು ಆಯ್ಕೆಮಾಡಿ! / Please select a student!');
+            alert('ದಯವಿಟ್ಟು ವಿದ್ಯಾರ್ಥಿಯ ಹೆಸರು ನಮೂದಿಸಿ! / Please enter student name!');
             return;
         }
 
@@ -687,7 +646,7 @@
     function clearData() {
         if (confirm('ಎಲ್ಲಾ ದತ್ತಾಂಶವನ್ನು ಅಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ? / Are you sure to reset all data?')) {
             localStorage.removeItem(DB_KEY);
-            updateStudentDropdown();
+            updateStudentSuggestions();
             renderDataSheet();
             renderConsolidated();
         }
@@ -696,7 +655,6 @@
     function triggerPrint(type) {
         checkPreparedBy();
 
-        // Dynamically inject layout rules for print page size setup
         let printStyle = document.getElementById('printPageSetup');
         if (!printStyle) {
             printStyle = document.createElement('style');
@@ -718,7 +676,7 @@
 
     window.onload = function() {
         checkPreparedBy();
-        updateStudentDropdown();
+        updateStudentSuggestions();
         renderDataSheet();
         renderConsolidated();
     };
